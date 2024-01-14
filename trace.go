@@ -8,7 +8,6 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
@@ -18,10 +17,10 @@ import (
 
 var (
 	importName = "__log"
-	importPath = `"github.com/jbardin/gotrace/log"`
+	importPath = `"github.com/xg0n/gotrace/log"`
 
 	importStmt = `
-import __log "github.com/jbardin/gotrace/log"
+import __log "github.com/xg0n/gotrace/log"
 `
 
 	setup = `
@@ -137,9 +136,12 @@ func (e *editList) inspect(node ast.Node) bool {
 
 		// prepend our receiver type
 		if n.Recv != nil && len(n.Recv.List) > 0 {
-			switch t := n.Recv.List[0].Type.(type) {
+			field := n.Recv.List[0]
+			switch t := field.Type.(type) {
 			case *ast.StarExpr:
-				funcName = t.X.(*ast.Ident).Name + "." + funcName
+				if names := field.Names; names != nil && len(names) > 0 {
+					funcName = names[0].Name + "." + funcName
+				}
 			case *ast.Ident:
 				funcName = t.Name + "." + funcName
 			}
@@ -177,7 +179,7 @@ func (e *editList) inspect(node ast.Node) bool {
 }
 
 func annotateFile(file string) {
-	orig, err := ioutil.ReadFile(file)
+	orig, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -193,7 +195,7 @@ func annotateFile(file string) {
 		return
 	}
 
-	err = ioutil.WriteFile(file, src, 0)
+	err = os.WriteFile(file, src, 0)
 	if err != nil {
 		log.Fatal(err)
 	}
