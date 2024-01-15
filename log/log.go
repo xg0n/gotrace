@@ -8,9 +8,9 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 	"unicode/utf8"
 )
@@ -51,6 +51,32 @@ func min(a int, b int) int {
 	} else {
 		return a
 	}
+}
+
+/* Return current and parent goroutine id in string format */
+func GoRoutineId() (currentId string, parrentId string) {
+	var buf [4096]byte
+	n := runtime.Stack(buf[:], false)
+	lines := strings.Split(string(buf[:n]), "\n")
+	first_line := lines[0]
+	currentId = strings.Fields(strings.TrimPrefix(first_line, "goroutine "))[0]
+	for i := len(lines) - 1; i >= 0; i-- {
+		line := lines[i]
+		if !strings.HasPrefix(line, "created by ") {
+			continue
+		}
+		parts := strings.Split(line, "goroutine ")
+		if len(parts) <= 1 {
+			break
+		}
+		words := strings.Fields(parts[1])
+		if len(words) == 0 {
+			break
+		}
+		parrentId = strings.Fields(parts[1])[0]
+		break
+	}
+	return
 }
 
 // Make things a little more readable. Format as strings with %q when we can,
@@ -113,10 +139,6 @@ func Format(args ...interface{}) string {
 		parts[i] = formatter(arg, formatSize)
 	}
 	return strings.Join(parts, ", ")
-}
-
-func ID() uint64 {
-	return atomic.AddUint64(&counter, 1)
 }
 
 func Now() time.Time {

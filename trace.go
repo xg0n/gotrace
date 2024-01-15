@@ -28,12 +28,12 @@ var _ = __log.Setup("stderr", "%s", %d)
 `
 
 	tmpl = `
-__traceID := __log.ID()
-__log.L.Printf("[%d] {{.fname}}(%s){{if .position}} [{{.position}}]{{ end }}\n", __traceID, __log.Format({{.args}}))
+__curID, __parentID := __log.GoRoutineId()
+__log.L.Printf("[%s %s] {{.fname}}(%s){{if .position}} [{{.position}}]{{ end }}\n", __curID, __parentID, __log.Format({{.args}}))
 {{if .timing}}__start := __log.Now(){{end}}
 {{if .return}}defer func() {
 	{{if .timing}}since := "in " + __log.Since(__start).String(){{else}}since := ""{{end}}
-	__log.L.Printf("[%d] {{.fname}}{{if .position}} [{{.position}}]{{ end }} returned %s\n", __traceID, since)
+	__log.L.Printf("[%s %s] {{.fname}}{{if .position}} [{{.position}}]{{ end }} returned %s\n", __curID, __parentID, since)
 }(){{ end }}
 `
 
