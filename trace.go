@@ -133,6 +133,7 @@ func (e *editList) inspect(node ast.Node) bool {
 		}
 		funcType = n.Type
 		funcName = n.Name.Name
+		pos = n.Pos()
 
 		// prepend our receiver type
 		if n.Recv != nil && len(n.Recv.List) > 0 {
