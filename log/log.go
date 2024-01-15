@@ -45,6 +45,14 @@ func setup(output, prefix string, size int) {
 	formatSize = size
 }
 
+func min(a int, b int) int {
+	if a > b {
+		return b
+	} else {
+		return a
+	}
+}
+
 // Make things a little more readable. Format as strings with %q when we can,
 // strip down empty slices, and don't print the internals from buffers.
 func formatter(i interface{}, size int) (s string) {
