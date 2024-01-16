@@ -8,9 +8,12 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
+	"syscall"
 	"time"
 	"unicode/utf8"
 )
@@ -21,28 +24,58 @@ var (
 	L          *log.Logger
 	setupOnce  sync.Once
 	formatSize int
+	Enable     atomic.Bool
+	sigCh      chan os.Signal
 )
 
 // Setup our logger
 // return  a value so this van be executed in a toplevel var statement
-func Setup(output, prefix string, size int) int {
+func Setup(output, prefix string, size int, enableByDefault bool, toggleSignalNum int) int {
 	setupOnce.Do(func() {
-		setup(output, prefix, size)
+		setupLogFile(output, prefix, size)
+		setupSignal(enableByDefault, toggleSignalNum)
 	})
 	return 0
 }
 
-func setup(output, prefix string, size int) {
+func setupLogFile(output, prefix string, size int) {
 	var out io.Writer
 	switch output {
 	case "stdout":
 		out = os.Stdout
-	default:
+	case "stderr":
 		out = os.Stderr
+	default:
+		file, err := os.Create(output)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to open log file \"%s\", err: %s\n", output, err)
+			break
+		}
+		out = file
 	}
-
 	L = log.New(out, prefix, log.Lmicroseconds)
 	formatSize = size
+}
+
+func setupSignal(enableByDefault bool, toggleSignalNum int) {
+	Enable.Store(enableByDefault)
+	sigCh = make(chan os.Signal)
+	toggleSignal := syscall.Signal(toggleSignalNum)
+	signal.Notify(sigCh, toggleSignal)
+	go signalHandler(toggleSignal)
+}
+
+func signalHandler(signal syscall.Signal) {
+	for {
+		select {
+		case sig := <-sigCh:
+			if sig == signal {
+				curentVal := Enable.Load()
+				L.Printf("Toggle log write from %t to %t\n", curentVal, !curentVal)
+				Enable.Store(!curentVal)
+			}
+		}
+	}
 }
 
 func min(a int, b int) int {

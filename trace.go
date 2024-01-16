@@ -24,7 +24,7 @@ import __log "github.com/xg0n/gotrace/log"
 `
 
 	setup = `
-var _ = __log.Setup("stderr", "%s", %d)
+var _ = __log.Setup("%s", "%s", %d, %t, %d)
 `
 
 	tmpl = `
@@ -41,17 +41,20 @@ __log.L.Printf("[%s %s] {{.fname}}(%s){{if .position}} [{{.position}}]{{ end }}\
 )
 
 var (
-	fset         *token.FileSet
-	funcTemplate *template.Template
-	showReturn   bool
-	exportedOnly bool
-	prefix       string
-	showPackage  bool
-	writeFiles   bool
-	filterFlag   string
-	excludeFlag  string
-	formatLength int
-	timing       bool
+	fset            *token.FileSet
+	funcTemplate    *template.Template
+	showReturn      bool
+	exportedOnly    bool
+	prefix          string
+	showPackage     bool
+	writeFiles      bool
+	filterFlag      string
+	excludeFlag     string
+	outputFile      string
+	formatLength    int
+	timing          bool
+	enableByDefault bool
+	toggleSignalNum int
 
 	filter  *regexp.Regexp
 	exclude *regexp.Regexp
@@ -273,6 +276,10 @@ func main() {
 	flag.StringVar(&excludeFlag, "exclude", "", "exclude any matching functions, takes precedence over filter")
 	flag.IntVar(&formatLength, "formatLength", 1024, "limit the formatted length of each argumnet to 'size'")
 	flag.BoolVar(&timing, "timing", false, "print function durations. Implies -returns")
+	flag.StringVar(&outputFile, "outputFile", "stderr", "file path to store output log or 'stdout', 'stderr'")
+	flag.BoolVar(&enableByDefault, "enableByDefault", true, "enable loging when the program start")
+	flag.IntVar(&toggleSignalNum, "toggleSignalNum", 10, "signal number to toggle enable/disable log write, default is 10 (SIGUSR1)")
+
 	flag.Parse()
 
 	if flag.NArg() < 1 {
@@ -280,7 +287,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	setup = fmt.Sprintf(setup, prefix, formatLength)
+	setup = fmt.Sprintf(setup, outputFile, prefix, formatLength, enableByDefault, toggleSignalNum)
 
 	var err error
 	filter, err = regexp.Compile(filterFlag)
