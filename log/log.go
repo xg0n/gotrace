@@ -9,13 +9,14 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
 	"unicode/utf8"
+
+	"github.com/xg0n/routineid"
 )
 
 // counter to mark each call so that entry and exit points can be correlated
@@ -87,29 +88,8 @@ func min(a int, b int) int {
 }
 
 /* Return current and parent goroutine id in string format */
-func GoRoutineId() (currentId string, parrentId string) {
-	var buf [4096]byte
-	n := runtime.Stack(buf[:], false)
-	lines := strings.Split(string(buf[:n]), "\n")
-	first_line := lines[0]
-	currentId = strings.Fields(strings.TrimPrefix(first_line, "goroutine "))[0]
-	for i := len(lines) - 1; i >= 0; i-- {
-		line := lines[i]
-		if !strings.HasPrefix(line, "created by ") {
-			continue
-		}
-		parts := strings.Split(line, "goroutine ")
-		if len(parts) <= 1 {
-			break
-		}
-		words := strings.Fields(parts[1])
-		if len(words) == 0 {
-			break
-		}
-		parrentId = strings.Fields(parts[1])[0]
-		break
-	}
-	return
+func GetRoutineIds() (currentId uint64, parrentId uint64) {
+	return routineid.GetRoutineIds()
 }
 
 // Make things a little more readable. Format as strings with %q when we can,

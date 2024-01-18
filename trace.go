@@ -28,13 +28,15 @@ var _ = __log.Setup("%s", "%s", %d, %t, %d)
 `
 
 	tmpl = `
-__curID, __parentID := __log.GoRoutineId()
-__log.L.Printf("[%s %s] {{.fname}}(%s){{if .position}} [{{.position}}]{{ end }}\n", __curID, __parentID, __log.Format({{.args}}))
-{{if .timing}}__start := __log.Now(){{end}}
-{{if .return}}defer func() {
-	{{if .timing}}since := "in " + __log.Since(__start).String(){{else}}since := ""{{end}}
-	__log.L.Printf("[%s %s] {{.fname}}{{if .position}} [{{.position}}]{{ end }} returned %s\n", __curID, __parentID, since)
-}(){{ end }}
+if __log.Enable.Load() {
+	__curID, __parentID := __log.GetRoutineIds()
+	__log.L.Printf("[%d %d] {{.fname}}(%s){{if .position}} [{{.position}}]{{ end }}\n", __curID, __parentID, __log.Format({{.args}}))
+	{{if .timing}}__start := __log.Now(){{end}}
+	{{if .return}}defer func() {
+		{{if .timing}}since := "in " + __log.Since(__start).String(){{else}}since := ""{{end}}
+		__log.L.Printf("[%d %d] {{.fname}}{{if .position}} [{{.position}}]{{ end }} returned %s\n", __curID, __parentID, since)
+	}(){{ end }}
+}
 `
 
 	ErrAlreadyImported = fmt.Errorf("%s already imported", importPath)
