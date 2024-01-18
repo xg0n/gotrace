@@ -16,7 +16,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/xg0n/routineid"
+	"github.com/xg0n/routine"
 )
 
 // counter to mark each call so that entry and exit points can be correlated
@@ -29,6 +29,7 @@ var (
 	sigCh      chan os.Signal
 	pid        int
 	ppid       int
+	indent     routine.ThreadLocal[int]
 )
 
 // Setup our logger
@@ -72,6 +73,7 @@ func setupSignal(enableByDefault bool, toggleSignalNum int) {
 func setupGlobalVar() {
 	pid = os.Getpid()
 	ppid = os.Getppid()
+	indent = routine.NewThreadLocal[int]()
 }
 
 func signalHandler(signal syscall.Signal) {
@@ -101,8 +103,19 @@ func GetPidPpid() (int, int) {
 }
 
 /* Return current and parent goroutine id in string format */
-func GetRoutineIds() (currentId uint64, parrentId uint64) {
-	return routineid.GetRoutineIds()
+func GetRoutineIds() (currentId int64, parrentId uint64) {
+	return routine.GetRoutineIds()
+}
+
+func IncreaseAndGetIndent() string {
+	value := indent.Get()
+	indent.Set(value + 1)
+	return strings.Repeat("  ", value)
+}
+
+func DecreaseIndent() {
+	value := indent.Get()
+	indent.Set(value - 1)
 }
 
 // Make things a little more readable. Format as strings with %q when we can,
