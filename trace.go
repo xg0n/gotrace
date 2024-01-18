@@ -29,12 +29,15 @@ var _ = __log.Setup("%s", "%s", %d, %t, %d)
 
 	tmpl = `
 if __log.Enable.Load() {
+	__pid, __ppid := __log.GetPidPpid()
 	__curID, __parentID := __log.GetRoutineIds()
-	__log.L.Printf("[%d %d] {{.fname}}(%s){{if .position}} [{{.position}}]{{ end }}\n", __curID, __parentID, __log.Format({{.args}}))
+	__log.L.Printf("[%d %d] [%d %d] {{.fname}}(%s){{if .position}} [{{.position}}]{{ end }}\n",
+			__pid, __ppid, __curID, __parentID, __log.Format({{.args}}))
 	{{if .timing}}__start := __log.Now(){{end}}
 	{{if .return}}defer func() {
 		{{if .timing}}since := "in " + __log.Since(__start).String(){{else}}since := ""{{end}}
-		__log.L.Printf("[%d %d] {{.fname}}{{if .position}} [{{.position}}]{{ end }} returned %s\n", __curID, __parentID, since)
+		__log.L.Printf("[%d %d] [%d %d] {{.fname}}{{if .position}} [{{.position}}]{{ end }} returned %s\n",
+				__pid, __ppid, __curID, __parentID, since)
 	}(){{ end }}
 }
 `

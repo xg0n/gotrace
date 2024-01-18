@@ -27,6 +27,8 @@ var (
 	formatSize int
 	Enable     atomic.Bool
 	sigCh      chan os.Signal
+	pid        int
+	ppid       int
 )
 
 // Setup our logger
@@ -35,6 +37,7 @@ func Setup(output, prefix string, size int, enableByDefault bool, toggleSignalNu
 	setupOnce.Do(func() {
 		setupLogFile(output, prefix, size)
 		setupSignal(enableByDefault, toggleSignalNum)
+		setupGlobalVar()
 	})
 	return 0
 }
@@ -66,6 +69,11 @@ func setupSignal(enableByDefault bool, toggleSignalNum int) {
 	go signalHandler(toggleSignal)
 }
 
+func setupGlobalVar() {
+	pid = os.Getpid()
+	ppid = os.Getppid()
+}
+
 func signalHandler(signal syscall.Signal) {
 	for {
 		select {
@@ -85,6 +93,11 @@ func min(a int, b int) int {
 	} else {
 		return a
 	}
+}
+
+/* Return process id and parent process id */
+func GetPidPpid() (int, int) {
+	return pid, ppid
 }
 
 /* Return current and parent goroutine id in string format */
