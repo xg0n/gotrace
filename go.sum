@@ -1,4 +1,6 @@
 github.com/xg0n/routine v0.0.0-20240118144627-59116c1af4f8 h1:3qWi6VffMraQj7BDMZsqK9cfSCwNrzHW2yKT6vTWO6w=
 github.com/xg0n/routine v0.0.0-20240118144627-59116c1af4f8/go.mod h1:sjJNzvPhCWwojze4iXUR8Bt17j+a9U/kE6BHbXqXzZY=
+github.com/xg0n/routine v0.0.0-20240119033701-c364deb94aee h1:27YCrjo7pEP1pOwtcISiZ2fGHvupir2ZOKeYOkA9jT4=
+github.com/xg0n/routine v0.0.0-20240119033701-c364deb94aee/go.mod h1:sjJNzvPhCWwojze4iXUR8Bt17j+a9U/kE6BHbXqXzZY=
 github.com/xg0n/routineid v0.0.0-20240118044206-b37c24067140 h1:jcwShVRcLMhnavz3URmtLHM4DRggfQiclnvsTn85+Po=
 github.com/xg0n/routineid v0.0.0-20240118044206-b37c24067140/go.mod h1:JTPSPEjXzRPNAKUBZiMNYKiAiTVe7eInujIkFtq2Log=
