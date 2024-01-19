@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -51,6 +52,11 @@ func setupLogFile(output, prefix string, size int) {
 	case "stderr":
 		out = os.Stderr
 	default:
+		dirname, filename := filepath.Split(output)
+		ext := filepath.Ext(filename)
+		filename, _ = strings.CutSuffix(filename, ext)
+		filename = fmt.Sprintf("%s-%d%s", filename, os.Getpid(), ext)
+		output = filepath.Join(dirname, filename)
 		file, err := os.Create(output)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to open log file \"%s\", err: %s\n", output, err)
